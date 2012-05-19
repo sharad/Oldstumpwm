@@ -19,7 +19,7 @@
 
 (defpackage :stumpwm
   (:use :cl)
-  (:shadow #:yes-or-no-p #:y-or-n-p))
+  (:shadow #:yes-or-no-p #:y-or-n-p #:run-shell-command))
 
 (defpackage :stumpwm-user
   (:use :cl :stumpwm))

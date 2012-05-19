@@ -1,7 +1,17 @@
 #-(or sbcl clisp openmcl ecl) (error "This lisp implementation is not supported.")
 
 (require 'asdf)
+(require 'asdf  #+clisp'("asdf.lisp"))
+(require 'in.net.sharad.utils  #+clisp'("in.net.sharad.utils"))
+(require 'sheeple  #+clisp'("sheeple"))
+(require 'in.net.sharad.pa-frontend-stumpwm  #+clisp'("in.net.sharad.pa-frontend-stumpwm"))
+
+#+(or clisp ecl) (load "@PPCRE_PATH@/cl-ppcre.asd")
+(asdf:oos 'asdf:load-op 'in.net.sharad.utils)
+(asdf:oos 'asdf:load-op 'sheeple)
+(asdf:oos 'asdf:load-op 'in.net.sharad.pa-frontend-stumpwm)
 (asdf:oos 'asdf:load-op 'stumpwm)
+
 #-ecl (stumpwm:set-contrib-dir "@CONTRIB_DIR@")
 
 #+sbcl
