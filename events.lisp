@@ -227,12 +227,17 @@ The Caller is responsible for setting up the input focus."
     (cond ((kmap-or-kmap-symbol-p match)
            (when grab
              (grab-pointer (current-screen)))
-           (let* ((code-state (read-key-no-modifiers))
+           (let* ((code-state (read-key-no-modifiers *grab-pointer-timeout*))
                   (code (car code-state))
                   (state (cdr code-state)))
-             (unwind-protect
-                  (handle-keymap (remove-if-not 'kmap-or-kmap-symbol-p bindings) code state key-seq nil update-fn)
-               (when grab (ungrab-pointer)))))
+             (if code-state
+                 (unwind-protect
+                      (handle-keymap (remove-if-not 'kmap-or-kmap-symbol-p bindings) code state key-seq nil update-fn)
+                   (when grab (ungrab-pointer)))
+                 (progn
+                   (when grab (ungrab-pointer))
+                   (keyboard-quit)
+                   (values t nil)))))
           (match
            (values match key-seq))
           ((and (find key (list (kbd "?")
@@ -249,7 +254,7 @@ The Caller is responsible for setting up the input focus."
    ;; The plain jane top map is first because that's where users are
    ;; going to throw in their universally accessible customizations
    ;; which we don't want groups or minor modes shadowing them.
-   (list '*top-map*)
+   (list '*top-map*s)
    ;; TODO: Minor Mode maps go here
    ;; lastly, group maps. Last because minor modes should be able to
    ;; shadow a group's default bindings.
