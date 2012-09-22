@@ -154,18 +154,28 @@
      (apply 'input-handle-selection-event event-slots))
     (t nil)))
 
-(defun read-key ()
+(defun read-key (&optional timeout)
   "Return a dotted pair (code . state) key."
-  (loop for ev = (xlib:process-event *display* :handler #'read-key-handle-event :timeout nil) do
-       (when (and (consp ev)
-                  (eq (first ev) :key-press))
-           (return (cdr ev)))))
+  (let ((start (get-universal-time)))
+    (loop for ev = (xlib:process-event *display* :handler #'read-key-handle-event :timeout timeout) do
 
-(defun read-key-no-modifiers ()
+         (if (and (consp ev)
+                  (eq (first ev) :key-press))
+             (return (cdr ev))
+             (when (and timeout
+                        (numberp timeout))
+               (if (<= timeout 0)
+                   (return nil)
+                   (setq timeout
+                         (- timeout
+                            (- (get-universal-time) start)))))))))
+
+(defun read-key-no-modifiers (&optional timeout)
   "Like read-key but never returns a modifier key."
-  (loop for k = (read-key)
-       while (is-modifier (car k))
-       finally (return k)))
+  (dformat 1 "read-key-no-modifiers: ~a~%" timeout)
+  (loop for k = (read-key timeout)
+     while (and k (is-modifier (car k)))
+     finally (return k)))
 
 (defun read-key-or-selection ()
   (loop for ev = (xlib:process-event *display* :handler #'read-key-or-selection-handle-event :timeout nil) do
